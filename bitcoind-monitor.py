@@ -120,6 +120,7 @@ PROCESS_TIME = Counter(
     "bitcoin_exporter_process_time", "Time spent processing metrics from bitcoin node"
 )
 
+BITCOIN_WALLET_BALANCE = Gauge("wallet_balance", "Balance of currently loaded wallet")
 
 BITCOIN_RPC_SCHEME = os.environ.get("BITCOIN_RPC_SCHEME", "http")
 BITCOIN_RPC_HOST = os.environ.get("BITCOIN_RPC_HOST", "localhost")
@@ -225,6 +226,7 @@ def do_smartfee(num_blocks: int) -> None:
 
 
 def refresh_metrics() -> None:
+    balance = float(bitcoinrpc("getbalance"))
     uptime = int(bitcoinrpc("uptime"))
     meminfo = bitcoinrpc("getmemoryinfo", "stats")["locked"]
     blockchaininfo = bitcoinrpc("getblockchaininfo")
@@ -239,6 +241,7 @@ def refresh_metrics() -> None:
 
     banned = bitcoinrpc("listbanned")
 
+    BITCOIN_WALLET_BALANCE.set(balance)
     BITCOIN_UPTIME.set(uptime)
     BITCOIN_BLOCKS.set(blockchaininfo["blocks"])
     BITCOIN_PEERS.set(networkinfo["connections"])
